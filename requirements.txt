@@ -1,6 +1,3 @@
-Package                            Version
----------------------------------- ----------
-
 dash                               1.11.0
 dash-core-components               1.9.1
 dash-html-components               1.0.3
