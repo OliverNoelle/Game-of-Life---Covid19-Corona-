@@ -205,6 +205,7 @@ fig2=update_fig2(dfloc)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
 app.layout = html.Div(children=[
         html.Button('Reset parameters', id='setvalues', n_clicks=0),
         html.Button('Start simulation', id='restart', n_clicks=0),
