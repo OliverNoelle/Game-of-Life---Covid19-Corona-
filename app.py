@@ -2,20 +2,23 @@
 -----------------------------------------------
 Game of life - Corona Covid 19 Edition 
     
-Authot : Oliver Nölle
+Author : Oliver Nölle, 2020 Hamburg/ Germany
 Architecture  :
-Plotly / Dash / Python  
+Python, Plotly/Dash   
 
-Decription :
-Simulation of infection courses with game of life approach.
+Description :
+Simulation of course of infection with game of life approach.
 Members of a given population size are moving randomly on a playground (100X100 matrix).
+If they meet on the same field they can infect each other. Infected will recover afer a given time.
 
-Verification and prediction by SIR model of infection deseases
+Prediction model : 
+SIR model. Parameters for differential equations are calculated based on best fit curve for 
+infected data points  
 
 Population groups : 
-Susceptible : group can be infected
-Infected : currently infected and can infect others on the same field on the playground
-Recovered : was infected and recovered or dead
+Susceptible (green) : group members can be infected
+Infected (red): currently infected and can infect others located on the same field on the playground
+Recovered (blue): members were infected and noew recovered or dead, Not infectous anymore
 ----------------------------------------------- 
 """
 
@@ -53,7 +56,6 @@ recovered = 0
 healthmatrix = np.zeros([country_x, country_y], dtype = int)
 df = pd.DataFrame([[0,susceptibel,infected,recovered]],columns = ['step', 'susceptibel','infected','recovered'])
 dfloc = pd.DataFrame([[0,0,0]],columns = ['xpos', 'ypos','condition'])
-
 
 
 def simstep(step, person): 
@@ -127,11 +129,12 @@ def fit_odeint(x, beta, gamma):
     suspected = pop_size - initial_infected
     return integrate.odeint(SIR_model, (suspected, initial_infected, 0), x, args=(beta, gamma))[:,1]
 
-
+# --------------------------------------------------------------------------
 
 def update_fig(df) :
     global showsir
     global sol
+    global pop_size
     fig = go.Figure(data=go.Scatter(x=df['step'],
                                 y=df['recovered'],
                                 mode='lines',
@@ -147,7 +150,7 @@ def update_fig(df) :
 
     if showsir == True :
             t = np.linspace(0,1000,1000)
-            new_susp=100-sol[:,1]-sol[:,2]
+            new_susp=pop_size-sol[:,1]-sol[:,2]
             fig.add_trace(go.Scatter(x=t, y=sol[:,1],
                     mode='lines',
                     name='SIR infected'))
@@ -241,7 +244,7 @@ app.layout = html.Div(children=[
             [State('population', 'value')])
 def start_simulation(n,m,o,q,p):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-#    print(changed_id)
+
     if n==0 :   # prevent trigger when button is not clicked - n_clicks = 0
         return True
     elif 'restart' in changed_id:
@@ -291,20 +294,22 @@ def reset_simulation(clicks, popsize, infsize):
                Input('sirmodel', 'n_clicks')])
 def update_graph_live(n,m):
             global sol
+            global pop_size
+            global initial_infected
             global showsir
             simstep(n, person)
             fig=update_fig(df)
 
             changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-            if 'sirmodel' in changed_id and m>0 :
+            if 'sirmodel' in changed_id and m>0 and n>10:  #calculate SIR model not before 10 simulation steps
                 print ('SIR simulation')
                 xdata = df.step
                 ydata = df.infected
                 xdata = np.array(xdata, dtype=float)
                 ydata = np.array(ydata, dtype=float)
 
-                S0 = 97
-                I0 = 3
+                S0 = pop_size-initial_infected
+                I0 = initial_infected
                 R0 = 0
                 y = S0, I0, R0
 
@@ -316,7 +321,7 @@ def update_graph_live(n,m):
                 sol = odeint(SIR_model,[S0,I0,R0],t,args = (bta,gmma))
                 sol = np.array(sol)
                 showsir=True
-                print(sol[:,1])
+ #               print(sol[:,1])
                 fig=update_fig(df)
             return fig      
 
