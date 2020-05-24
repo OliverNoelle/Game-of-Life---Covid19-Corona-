@@ -6,6 +6,7 @@ dash-table
 Flask
 Flask-Compress
 Flask-Cors
+Gunicorn
 matplotlib
 numpy
 pandas
